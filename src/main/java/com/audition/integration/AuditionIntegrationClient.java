@@ -1,5 +1,11 @@
 package com.audition.integration;
 
+import static com.audition.constant.ErrorMessage.HTTP_CLIENT_ERROR;
+import static com.audition.constant.ErrorMessage.RESOURCE_NOT_FOUND;
+import static com.audition.constant.ErrorMessage.UNEXPECTED_ERROR;
+import static com.audition.constant.ErrorMessage.UPSTREAM_ERROR;
+import static com.audition.constant.ErrorMessage.UPSTREAM_UNAVAILABLE;
+
 import com.audition.common.exception.SystemException;
 import com.audition.model.AuditionPost;
 import com.audition.model.Comment;
@@ -21,12 +27,6 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @RequiredArgsConstructor
 public class AuditionIntegrationClient {
-
-    public static final String HTTP_CLIENT_ERROR = "HTTP Client Error";
-    public static final String RESOURCE_NOT_FOUND = "Resource Not Found";
-    public static final String UPSTREAM_ERROR = "Upstream Service Error";
-    public static final String UPSTREAM_UNAVAILABLE = "Upstream Service Unavailable";
-    public static final String UNEXPECTED_ERROR = "Unexpected Error";
 
     private static final ParameterizedTypeReference<List<AuditionPost>> POST_LIST =
         new ParameterizedTypeReference<>() {
@@ -81,9 +81,12 @@ public class AuditionIntegrationClient {
         try {
             return call.get();
         } catch (final HttpClientErrorException e) {
-            final boolean notFound = HttpStatus.NOT_FOUND.equals(e.getStatusCode());
-            throw new SystemException("Error " + action + ": " + e.getMessage(),
-                notFound ? RESOURCE_NOT_FOUND : HTTP_CLIENT_ERROR, e.getStatusCode().value(), e);
+            if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+                throw new SystemException("Resource not found while " + action, RESOURCE_NOT_FOUND,
+                    HttpStatus.NOT_FOUND.value(), e);
+            }
+            throw new SystemException("Error " + action + ": " + e.getMessage(), HTTP_CLIENT_ERROR,
+                e.getStatusCode().value(), e);
         } catch (final HttpServerErrorException e) {
             throw new SystemException("Upstream failure " + action + ": " + e.getMessage(),
                 UPSTREAM_ERROR, HttpStatus.BAD_GATEWAY.value(), e);

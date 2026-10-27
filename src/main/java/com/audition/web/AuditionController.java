@@ -1,5 +1,9 @@
 package com.audition.web;
 
+import static com.audition.constant.ErrorMessage.POSITIVE_INTEGER_MESSAGE;
+import static com.audition.constant.ValidationRules.MAX_FILTER_LENGTH;
+import static com.audition.constant.ValidationRules.POSITIVE_INTEGER;
+
 import com.audition.model.AuditionPost;
 import com.audition.model.AuditionPostWithComments;
 import com.audition.model.Comment;
@@ -22,15 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class AuditionController {
 
-    private static final String POSITIVE_INTEGER = "^[1-9][0-9]{0,8}$";
-    private static final String POSITIVE_INTEGER_MESSAGE = "must be a positive whole number";
-
     private final AuditionService auditionService;
 
     @GetMapping(value = "/posts", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<AuditionPost> getPosts(@RequestParam(value = "userId", required = false) @Positive final Integer userId,
-        @RequestParam(value = "title", required = false) @Size(max = 100) final String title,
-        @RequestParam(value = "body", required = false) @Size(max = 100) final String body) {
+        @RequestParam(value = "title", required = false) @Size(max = MAX_FILTER_LENGTH) final String title,
+        @RequestParam(value = "body", required = false) @Size(max = MAX_FILTER_LENGTH) final String body) {
 
         return auditionService.getPosts(userId, title, body);
     }
