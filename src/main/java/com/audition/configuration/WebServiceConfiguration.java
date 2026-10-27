@@ -40,6 +40,7 @@ public class WebServiceConfiguration implements WebMvcConfigurer {
     @Bean
     public RestTemplate restTemplate(final RestTemplateBuilder builder,
         final ObjectMapper objectMapper,
+        final RestTemplateLoggingInterceptor loggingInterceptor,
         @Value("${audition.client.base-url}") final String baseUrl,
         @Value("${audition.client.connect-timeout-ms}") final int connectTimeoutMs,
         @Value("${audition.client.read-timeout-ms}") final int readTimeoutMs) {
@@ -51,6 +52,7 @@ public class WebServiceConfiguration implements WebMvcConfigurer {
             .messageConverters(
                 new StringHttpMessageConverter(StandardCharsets.UTF_8),
                 new MappingJackson2HttpMessageConverter(objectMapper))
+            .additionalInterceptors(loggingInterceptor)
             .build();
     }
 
