@@ -5,6 +5,7 @@ import com.audition.model.AuditionPost;
 import com.audition.model.AuditionPostWithComments;
 import com.audition.model.Comment;
 import java.util.List;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,15 @@ public class AuditionService {
     private AuditionIntegrationClient auditionIntegrationClient;
 
 
-    public List<AuditionPost> getPosts() {
-        return auditionIntegrationClient.getPosts();
+    public List<AuditionPost> getPosts(final Integer userId, final String title, final String body) {
+
+        final String titleFilter = normalise(title);
+        final String bodyFilter = normalise(body);
+        return auditionIntegrationClient.getPosts().stream()
+            .filter(post -> userId == null || post.getUserId() == userId)
+            .filter(post -> containsIgnoreCase(post.getTitle(), titleFilter))
+            .filter(post -> containsIgnoreCase(post.getBody(), bodyFilter))
+            .toList();
     }
 
     public AuditionPost getPostById(final String postId) {
@@ -40,5 +48,13 @@ public class AuditionService {
      */
     public List<Comment> getCommentsByPostId(final String postId) {
         return auditionIntegrationClient.getCommentsByPostId(postId);
+    }
+
+    private static String normalise(final String text) {
+        return text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean containsIgnoreCase(final String field, final String filter) {
+        return filter.isEmpty() || field != null && field.toLowerCase(Locale.ROOT).contains(filter);
     }
 }

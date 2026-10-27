@@ -35,13 +35,6 @@ public class WebServiceConfiguration implements WebMvcConfigurer {
                 DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
                 SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .build();
-        // TODO configure Jackson Object mapper that
-        //  1. allows for date format as yyyy-MM-dd
-        //  2. Does not fail on unknown properties
-        //  3. maps to camelCase
-        //  4. Does not include null values or empty values
-        //  5. does not write datas as timestamps.
-        //return new ObjectMapper();
     }
 
     @Bean
@@ -51,9 +44,6 @@ public class WebServiceConfiguration implements WebMvcConfigurer {
         @Value("${audition.client.connect-timeout-ms}") final int connectTimeoutMs,
         @Value("${audition.client.read-timeout-ms}") final int readTimeoutMs) {
 
-//        final RestTemplate restTemplate = new RestTemplate(
-//            new BufferingClientHttpRequestFactory(createClientFactory()));
-
         return builder
             .rootUri(baseUrl)
             .requestFactory(() ->
@@ -62,10 +52,6 @@ public class WebServiceConfiguration implements WebMvcConfigurer {
                 new StringHttpMessageConverter(StandardCharsets.UTF_8),
                 new MappingJackson2HttpMessageConverter(objectMapper))
             .build();
-        // TODO use object mapper
-        // TODO create a logging interceptor that logs request/response for rest template calls.
-
-        //return restTemplate;
     }
 
     private SimpleClientHttpRequestFactory createClientFactory(final int connectTimeoutMs,

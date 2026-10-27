@@ -38,13 +38,13 @@ public class AuditionIntegrationClient {
 
 
     public List<AuditionPost> getPosts() {
-        // TODO make RestTemplate call to get Posts from https://jsonplaceholder.typicode.com/posts
+
         return execute("fetching posts", () -> orEmpty(
             restTemplate.exchange("/posts", HttpMethod.GET, null, POST_LIST).getBody()));
     }
 
     public AuditionPost getPostById(final String id) {
-        // TODO get post by post ID call from https://jsonplaceholder.typicode.com/posts/
+
         final AuditionPost post = execute("fetching post with id " + id,
             () -> restTemplate.getForObject("/posts/{id}", AuditionPost.class, id));
         if (post == null) {
@@ -58,7 +58,7 @@ public class AuditionIntegrationClient {
      * Comments via /posts/{postId}/comments (the service embeds them in the post).
      */
     public List<Comment> getCommentsForPost(final String postId) {
-        // TODO Write a method GET comments for a post from https://jsonplaceholder.typicode.com/posts/{postId}/comments - the comments must be returned as part of the post.
+
         return execute("fetching comments for post with id " + postId, () -> orEmpty(
             restTemplate.exchange("/posts/{postId}/comments", HttpMethod.GET, null, COMMENT_LIST, postId)
                 .getBody()));
@@ -68,8 +68,7 @@ public class AuditionIntegrationClient {
      * Comments via /comments?postId={postId}, returned as a separate list.
      */
     public List<Comment> getCommentsByPostId(final String postId) {
-        // TODO write a method. GET comments for a particular Post from https://jsonplaceholder.typicode.com/comments?postId={postId}.
-        // The comments are a separate list that needs to be returned to the API consumers. Hint: this is not part of the AuditionPost pojo.
+
         return execute("fetching comments with postId " + postId, () -> orEmpty(
             restTemplate.exchange("/comments?postId={postId}", HttpMethod.GET, null, COMMENT_LIST, postId)
                 .getBody()));
