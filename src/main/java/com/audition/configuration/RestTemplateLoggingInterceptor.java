@@ -13,6 +13,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
+// Spring singleton: never serialised, so the field does not need accessors or to be transient.
+@SuppressWarnings("PMD.BeanMembersShouldSerialize")
 @Component
 public class RestTemplateLoggingInterceptor implements ClientHttpRequestInterceptor {
 
@@ -25,6 +27,7 @@ public class RestTemplateLoggingInterceptor implements ClientHttpRequestIntercep
         this.auditionLogger = auditionLogger;
     }
 
+    @SuppressWarnings("PMD.GuardLogStatement")
     @Override
     public ClientHttpResponse intercept(final HttpRequest request, final byte[] body,
         final ClientHttpRequestExecution execution) throws IOException {

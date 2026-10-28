@@ -80,26 +80,37 @@ public class AuditionIntegrationClient {
     private <T> T execute(final String action, final Supplier<T> call) {
         try {
             return call.get();
-        } catch (final HttpClientErrorException e) {
-            if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
-                throw new SystemException("Resource not found while " + action, RESOURCE_NOT_FOUND,
-                    HttpStatus.NOT_FOUND.value(), e);
-            }
-            throw new SystemException("Error " + action + ": " + e.getMessage(), HTTP_CLIENT_ERROR,
-                e.getStatusCode().value(), e);
-        } catch (final HttpServerErrorException e) {
-            throw new SystemException("Upstream failure " + action + ": " + e.getMessage(),
-                UPSTREAM_ERROR, HttpStatus.BAD_GATEWAY.value(), e);
-        } catch (final ResourceAccessException e) {
-            throw new SystemException("Upstream unreachable " + action + ": " + e.getMessage(),
-                UPSTREAM_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE.value(), e);
         } catch (final RestClientException e) {
-            throw new SystemException("Unexpected error " + action + ": " + e.getMessage(),
-                UNEXPECTED_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value(), e);
+            throw toSystemException(action, e);
         }
     }
 
     private static <T> List<T> orEmpty(final List<T> list) {
         return Optional.ofNullable(list).orElse(Collections.emptyList());
+    }
+
+    private static SystemException toSystemException(final String action, final RestClientException e) {
+        if (e instanceof HttpClientErrorException clientError) {
+            return fromClientError(action, clientError);
+        }
+        if (e instanceof HttpServerErrorException) {
+            return new SystemException("Upstream failure " + action + ": " + e.getMessage(),
+                UPSTREAM_ERROR, HttpStatus.BAD_GATEWAY.value(), e);
+        }
+        if (e instanceof ResourceAccessException) {
+            return new SystemException("Upstream unreachable " + action + ": " + e.getMessage(),
+                UPSTREAM_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE.value(), e);
+        }
+        return new SystemException("Unexpected error " + action + ": " + e.getMessage(),
+            UNEXPECTED_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value(), e);
+    }
+
+    private static SystemException fromClientError(final String action, final HttpClientErrorException e) {
+        if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+            return new SystemException("Resource not found while " + action, RESOURCE_NOT_FOUND,
+                HttpStatus.NOT_FOUND.value(), e);
+        }
+        return new SystemException("Error " + action + ": " + e.getMessage(), HTTP_CLIENT_ERROR,
+            e.getStatusCode().value(), e);
     }
 }

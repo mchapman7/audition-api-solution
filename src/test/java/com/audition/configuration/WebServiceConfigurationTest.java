@@ -17,7 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-public class WebServiceConfigurationTest {
+class WebServiceConfigurationTest {
 
     private final ObjectMapper mapper = new WebServiceConfiguration().objectMapper();
 
@@ -35,7 +35,7 @@ public class WebServiceConfigurationTest {
 
     @Test
     void alwaysWritesTheCommentsFieldEvenWhenEmpty() throws Exception {
-        final String json = mapper.writeValueAsString(AuditionPostWithComments.of(new AuditionPost(), List.of()));
+        final String json = mapper.writeValueAsString(AuditionPostWithComments.from(new AuditionPost(), List.of()));
 
         assertThat(json).contains("\"comments\":[]");
     }

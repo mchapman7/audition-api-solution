@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<ruleset name="Custom Rules (tests)"
+  xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+  <description>The production ruleset (ruleset.xml) minus the rules that do not suit test code.</description>
+
+  <exclude-pattern>.*/generated/.*</exclude-pattern>
+
+  <rule ref="category/java/codestyle.xml">
+    <exclude name="ShortVariable"/>
+    <exclude name="LongVariable"/>
+    <exclude name="AtLeastOneConstructor"/>
+    <exclude name="CommentDefaultAccessModifier"/>
+    <exclude name="TooManyStaticImports"/>
+    <exclude name="OnlyOneReturn"/>
+    <!-- Test methods are named after the method under test (getPosts...), which reads as a getter. -->
+    <exclude name="LinguisticNaming"/>
+  </rule>
+
+  <rule ref="category/java/security.xml"/>
+  <rule ref="category/java/performance.xml"/>
+  <rule ref="category/java/multithreading.xml"/>
+
+  <rule ref="category/java/design.xml">
+    <exclude name="LawOfDemeter"/>
+    <exclude name="LoosePackageCoupling"/>
+    <exclude name="UseUtilityClass"/>
+    <exclude name="ImmutableField"/>
+    <!-- MockMvc.perform(...) declares "throws Exception", so test methods do too. -->
+    <exclude name="SignatureDeclareThrowsException"/>
+    <!-- Test classes that cover many scenarios have many methods and imports by nature. -->
+    <exclude name="ExcessiveImports"/>
+    <exclude name="TooManyMethods"/>
+  </rule>
+
+  <rule ref="category/java/errorprone.xml">
+    <exclude name="BeanMembersShouldSerialize"/>
+    <!-- Repeated URLs, JSON paths and test data are clearer inline than as constants. -->
+    <exclude name="AvoidDuplicateLiterals"/>
+    <!-- The ClientHttpResponse and Logger instances are Mockito mocks: nothing to close or make static. -->
+    <exclude name="CloseResource"/>
+    <exclude name="LoggerIsNotStaticFinal"/>
+  </rule>
+
+  <rule ref="category/java/bestpractices.xml">
+    <exclude name="JUnitAssertionsShouldIncludeMessage"/>
+    <!-- PMD 6 does not recognise MockMvc andExpect(...) and Mockito verify(...) as assertions. -->
+    <exclude name="JUnitTestsShouldIncludeAssert"/>
+  </rule>
+
+  <rule ref="category/java/bestpractices.xml/JUnitTestContainsTooManyAsserts">
+    <properties>
+      <property name="maximumAsserts" value="7"/>
+    </properties>
+  </rule>
+
+</ruleset>

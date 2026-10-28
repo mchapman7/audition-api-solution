@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
     excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
         classes = WebServiceConfiguration.class))
 @Import(AuditionLogger.class)
-public class AuditionControllerTest {
+class AuditionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -97,9 +97,9 @@ public class AuditionControllerTest {
     }
 
     @Test
-    void getPostWithComments_returnsThePostWithItsCommentsEmbedded() throws Exception {
+    void getPostWithCommentsReturnsThePostWithItsCommentsEmbedded() throws Exception {
         when(auditionService.getPostWithComments("1"))
-            .thenReturn(AuditionPostWithComments.of(post(1, 1, "t", "b"), List.of(comment(1, 5))));
+            .thenReturn(AuditionPostWithComments.from(post(1, 1, "t", "b"), List.of(comment(1, 5))));
 
         mockMvc.perform(get("/posts/1/comments"))
             .andExpect(status().isOk())
@@ -110,7 +110,7 @@ public class AuditionControllerTest {
     }
 
     @Test
-    void getCommentsByPostId_returnsAPlainList() throws Exception {
+    void getCommentsByPostIdReturnsAPlainList() throws Exception {
         when(auditionService.getCommentsByPostId("1")).thenReturn(List.of(comment(1, 1), comment(1, 2)));
 
         mockMvc.perform(get("/comments").param("postId", "1"))

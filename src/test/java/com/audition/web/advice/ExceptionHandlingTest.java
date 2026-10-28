@@ -38,7 +38,7 @@ import org.springframework.test.web.servlet.MockMvc;
     excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
         classes = WebServiceConfiguration.class))
 @Import(AuditionLogger.class)
-public class ExceptionHandlingTest {
+class ExceptionHandlingTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -83,26 +83,26 @@ public class ExceptionHandlingTest {
     }
 
     @Test
-    void aNegativeUserIdReturns400() throws Exception {
+    void negativeUserIdReturns400() throws Exception {
         mockMvc.perform(get("/posts").param("userId", "-5")).andExpect(status().isBadRequest());
     }
 
     @Test
-    void aNonNumericUserIdReturns400() throws Exception {
+    void nonNumericUserIdReturns400() throws Exception {
         mockMvc.perform(get("/posts").param("userId", "abc"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
-    void aTooLongTitleFilterReturns400() throws Exception {
+    void tooLongTitleFilterReturns400() throws Exception {
         mockMvc.perform(get("/posts").param("title", "x".repeat(101)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.detail").value(containsString("title")));
     }
 
     @Test
-    void aTooLongBodyFilterReturns400() throws Exception {
+    void tooLongBodyFilterReturns400() throws Exception {
         mockMvc.perform(get("/posts").param("body", "x".repeat(101)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.detail").value(containsString("body")));
@@ -111,7 +111,7 @@ public class ExceptionHandlingTest {
     // ---- standard MVC errors, handled by the parent class ----
 
     @Test
-    void aMissingPostIdParameterReturns400() throws Exception {
+    void missingPostIdParameterReturns400() throws Exception {
         mockMvc.perform(get("/comments"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.status").value(400));
@@ -133,7 +133,7 @@ public class ExceptionHandlingTest {
     // ---- SystemException mapping ----
 
     @Test
-    void aNotFoundSystemExceptionIsReturnedWithItsStatusTitleAndMessage() throws Exception {
+    void notFoundSystemExceptionIsReturnedWithItsStatusTitleAndMessage() throws Exception {
         when(auditionService.getPostById("9999")).thenThrow(new SystemException(
             "Resource not found while fetching post with id 9999", RESOURCE_NOT_FOUND, 404));
 
@@ -145,7 +145,7 @@ public class ExceptionHandlingTest {
     }
 
     @Test
-    void aClientErrorSystemExceptionKeepsItsStatusAndMessage() throws Exception {
+    void clientErrorSystemExceptionKeepsItsStatusAndMessage() throws Exception {
         when(auditionService.getPostById("1")).thenThrow(
             new SystemException("Error fetching post: 429 Too Many Requests", HTTP_CLIENT_ERROR, 429));
 
@@ -156,7 +156,7 @@ public class ExceptionHandlingTest {
     }
 
     @Test
-    void aServerErrorSystemException_hidesInternalDetailFromTheCaller() throws Exception {
+    void serverErrorSystemExceptionHidesInternalDetailFromTheCaller() throws Exception {
         when(auditionService.getPostById("1")).thenThrow(new SystemException(
             "I/O error on GET request for http://internal-host:5432", UPSTREAM_UNAVAILABLE, 503,
             new RuntimeException("socket closed")));
@@ -169,7 +169,7 @@ public class ExceptionHandlingTest {
     }
 
     @Test
-    void aSystemExceptionWithoutATitle_getsTheDefaultTitle() throws Exception {
+    void systemExceptionWithoutATitleGetsTheDefaultTitle() throws Exception {
         when(auditionService.getPostById("1")).thenThrow(new SystemException("no title", (String) null, 400));
 
         mockMvc.perform(get("/posts/1"))
@@ -178,7 +178,7 @@ public class ExceptionHandlingTest {
     }
 
     @Test
-    void aSystemExceptionWithAnInvalidStatusCodeFallsBackTo500() throws Exception {
+    void systemExceptionWithAnInvalidStatusCodeFallsBackTo500() throws Exception {
         // Spring accepts three-digit codes only, so 42 cannot be mapped to a status.
         when(auditionService.getPostById("1")).thenThrow(new SystemException("bad code", "Some Title", 42));
 
@@ -201,7 +201,7 @@ public class ExceptionHandlingTest {
     }
 
     @Test
-    void aClientErrorWithANullMessageUsesTheDefaultMessage() throws Exception {
+    void clientErrorWithANullMessageUsesTheDefaultMessage() throws Exception {
         when(auditionService.getPostById("1")).thenThrow(new SystemException(null, "Some Title", 400));
 
         mockMvc.perform(get("/posts/1"))
@@ -211,7 +211,7 @@ public class ExceptionHandlingTest {
     }
 
     @Test
-    void aClientErrorWithABlankMessageUsesTheDefaultMessage() throws Exception {
+    void clientErrorWithABlankMessageUsesTheDefaultMessage() throws Exception {
         when(auditionService.getPostById("1")).thenThrow(new SystemException("   ", "Some Title", 400));
 
         mockMvc.perform(get("/posts/1"))

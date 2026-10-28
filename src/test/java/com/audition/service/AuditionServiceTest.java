@@ -19,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class AuditionServiceTest {
+class AuditionServiceTest {
 
     private static final String TITLE_1 = "title1";
     private static final String TITLE_2 = "title2";
@@ -186,7 +186,7 @@ public class AuditionServiceTest {
     }
 
     @Test
-    void getCommentsByPostId_returnsTheClientsList() {
+    void getCommentsByPostIdReturnsTheClientsList() {
         final List<Comment> expected = List.of(comment(1, 1));
         when(client.getCommentsByPostId("1")).thenReturn(expected);
 

@@ -25,7 +25,7 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 
 @ExtendWith(MockitoExtension.class)
-public class RestTemplateLoggingInterceptorTest {
+class RestTemplateLoggingInterceptorTest {
 
     private static final URI URL = URI.create("http://upstream.test/posts/1");
 

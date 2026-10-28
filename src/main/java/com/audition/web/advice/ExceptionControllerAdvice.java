@@ -52,7 +52,7 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
         return createProblemDetail(INTERNAL_SERVER_ERROR, DEFAULT_TITLE, DEFAULT_MESSAGE, e);
     }
 
-
+    @SuppressWarnings("PMD.GuardLogStatement")
     private ProblemDetail createProblemDetail(final HttpStatusCode status, final String title, final String detail,
         final Exception exception) {
 
@@ -67,6 +67,7 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
         return problemDetail;
     }
 
+    @SuppressWarnings("PMD.GuardLogStatement")
     private HttpStatusCode resolveStatus(final SystemException e) {
         try {
             return HttpStatusCode.valueOf(e.getStatusCode());

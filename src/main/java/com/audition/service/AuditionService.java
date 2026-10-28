@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
 
+// Spring singleton: never serialised, so the field does not need accessors or to be transient.
+@SuppressWarnings("PMD.BeanMembersShouldSerialize")
 @Service
 public class AuditionService {
 
@@ -17,15 +19,12 @@ public class AuditionService {
         this.auditionIntegrationClient = auditionIntegrationClient;
     }
 
-
     public List<AuditionPost> getPosts(final Integer userId, final String title, final String body) {
 
-        final String titleFilter = normalise(title);
-        final String bodyFilter = normalise(body);
         return auditionIntegrationClient.getPosts().stream()
             .filter(post -> userId == null || post.getUserId() == userId)
-            .filter(post -> containsIgnoreCase(post.getTitle(), titleFilter))
-            .filter(post -> containsIgnoreCase(post.getBody(), bodyFilter))
+            .filter(post -> containsIgnoreCase(post.getTitle(), title))
+            .filter(post -> containsIgnoreCase(post.getBody(), body))
             .toList();
     }
 
@@ -40,7 +39,7 @@ public class AuditionService {
     public AuditionPostWithComments getPostWithComments(final String postId) {
         final AuditionPost post = auditionIntegrationClient.getPostById(postId);
         final List<Comment> comments = auditionIntegrationClient.getCommentsForPost(postId);
-        return AuditionPostWithComments.of(post, comments);
+        return AuditionPostWithComments.from(post, comments);
     }
 
     /**
@@ -55,6 +54,7 @@ public class AuditionService {
     }
 
     private static boolean containsIgnoreCase(final String field, final String filter) {
-        return filter.isEmpty() || field != null && field.toLowerCase(Locale.ROOT).contains(filter);
+        final String normalisedValue = normalise(filter);
+        return normalisedValue.isEmpty() || field != null && field.toLowerCase(Locale.ROOT).contains(normalisedValue);
     }
 }

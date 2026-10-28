@@ -31,7 +31,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-public class AuditionIntegrationClientTest {
+class AuditionIntegrationClientTest {
 
     private static final String BASE = "http://upstream.test";
     private static final String POST_JSON = "{\"userId\":1,\"id\":1,\"title\":\"first\",\"body\":\"first body\"}";
@@ -52,7 +52,7 @@ public class AuditionIntegrationClientTest {
     }
 
     @Test
-    void getPosts_returnsTheParsedList() {
+    void getPostsReturnsTheParsedList() {
         server.expect(requestTo(BASE + "/posts")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(POSTS_JSON, MediaType.APPLICATION_JSON));
 
@@ -64,7 +64,7 @@ public class AuditionIntegrationClientTest {
     }
 
     @Test
-    void getPostById_returnsTheParsedPost() {
+    void getPostByIdReturnsTheParsedPost() {
         server.expect(requestTo(BASE + "/posts/1")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(POST_JSON, MediaType.APPLICATION_JSON));
 
@@ -77,7 +77,7 @@ public class AuditionIntegrationClientTest {
     }
 
     @Test
-    void getCommentsForPost_callsThePostsCommentsPath() {
+    void getCommentsForPostCallsThePostsCommentsPath() {
         server.expect(requestTo(BASE + "/posts/1/comments")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(COMMENTS_JSON, MediaType.APPLICATION_JSON));
 
@@ -89,7 +89,7 @@ public class AuditionIntegrationClientTest {
     }
 
     @Test
-    void getCommentsByPostId_callsTheCommentsPathWithTheQueryParameter() {
+    void getCommentsByPostIdCallsTheCommentsPathWithTheQueryParameter() {
         server.expect(requestTo(BASE + "/comments?postId=1")).andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(COMMENTS_JSON, MediaType.APPLICATION_JSON));
 

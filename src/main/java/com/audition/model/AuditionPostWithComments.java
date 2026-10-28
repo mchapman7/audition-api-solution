@@ -13,7 +13,7 @@ public class AuditionPostWithComments extends AuditionPost {
     @JsonInclude(JsonInclude.Include.ALWAYS)
     private List<Comment> comments = new ArrayList<>();
 
-    public static AuditionPostWithComments of(final AuditionPost post,
+    public static AuditionPostWithComments from(final AuditionPost post,
         final List<Comment> comments) {
 
         final AuditionPostWithComments result = new AuditionPostWithComments();

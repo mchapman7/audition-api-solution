@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class SystemExceptionTest {
+class SystemExceptionTest {
 
     private static final RuntimeException CAUSE = new RuntimeException("root cause");
 
