@@ -1,8 +1,6 @@
 spring:
   application:
     name: audition-api
-  config:
-    import: "optional:configserver:"
   # removed allow-bean-definition-overriding: true hides duplicate-bean mistakes
   autoconfigure:
     exclude:
