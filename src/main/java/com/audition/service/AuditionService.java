@@ -6,16 +6,16 @@ import com.audition.model.AuditionPostWithComments;
 import com.audition.model.Comment;
 import java.util.List;
 import java.util.Locale;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class AuditionService {
 
-    @Autowired
     private AuditionIntegrationClient auditionIntegrationClient;
+
+    public AuditionService(final AuditionIntegrationClient auditionIntegrationClient) {
+        this.auditionIntegrationClient = auditionIntegrationClient;
+    }
 
 
     public List<AuditionPost> getPosts(final Integer userId, final String title, final String body) {

@@ -7,7 +7,7 @@ public class SystemException extends RuntimeException {
 
     private static final long serialVersionUID = -5876728854007114881L;
 
-    private final Integer statusCode;
+    private final int statusCode;
     private final String title;
 
     public SystemException(final String message, final String title, final int statusCode) {

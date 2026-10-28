@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -28,7 +27,7 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionControllerAdvice.class);
 
-    private final AuditionLogger logger;
+    private final AuditionLogger auditionLogger;
 
     @ExceptionHandler(SystemException.class)
     ProblemDetail handleSystemException(final SystemException e) {
@@ -61,23 +60,20 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
         problemDetail.setTitle(title);
         problemDetail.setDetail(detail);
         if (status.is5xxServerError()) {
-            logger.logStandardProblemDetail(LOG, problemDetail, exception);
+            auditionLogger.logStandardProblemDetail(LOG, problemDetail, exception);
         } else {
-            logger.warn(LOG, "Request rejected: " + detail);
+            auditionLogger.warn(LOG, "Request rejected: " + detail);
         }
         return problemDetail;
     }
 
     private HttpStatusCode resolveStatus(final SystemException e) {
-        final Integer code = e.getStatusCode();
-        if (code == null) {
-            return HttpStatus.INTERNAL_SERVER_ERROR;
-        }
         try {
-            return HttpStatusCode.valueOf(code);
+            return HttpStatusCode.valueOf(e.getStatusCode());
         } catch (final IllegalArgumentException iae) {
-            logger.warn(LOG, "Status code could not be mapped to a valid HttpStatus Code - " + code);
-            return HttpStatus.INTERNAL_SERVER_ERROR;
+            auditionLogger.warn(LOG,
+                "Status code could not be mapped to a valid HttpStatus Code - " + e.getStatusCode());
+            return INTERNAL_SERVER_ERROR;
         }
     }
 
