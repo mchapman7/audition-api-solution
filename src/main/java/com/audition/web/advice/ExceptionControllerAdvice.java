@@ -1,93 +1,99 @@
 package com.audition.web.advice;
 
+import static com.audition.constant.ErrorMessage.DEFAULT_MESSAGE;
+import static com.audition.constant.ErrorMessage.DEFAULT_TITLE;
+import static com.audition.constant.ErrorMessage.VALIDATION_TITLE;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
 
 import com.audition.common.exception.SystemException;
 import com.audition.common.logging.AuditionLogger;
-import io.micrometer.common.util.StringUtils;
+import jakarta.validation.ConstraintViolationException;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 
 @ControllerAdvice
+@RequiredArgsConstructor
 public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
 
-    public static final String DEFAULT_TITLE = "API Error Occurred";
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionControllerAdvice.class);
-    private static final String ERROR_MESSAGE = " Error Code from Exception could not be mapped to a valid HttpStatus Code - ";
-    private static final String DEFAULT_MESSAGE = "API Error occurred. Please contact support or administrator.";
 
-    @Autowired
-    private AuditionLogger logger;
-
-    @ExceptionHandler(HttpClientErrorException.class)
-    ProblemDetail handleHttpClientException(final HttpClientErrorException e) {
-        return createProblemDetail(e, e.getStatusCode());
-
-    }
-
-
-    @ExceptionHandler(Exception.class)
-    ProblemDetail handleMainException(final Exception e) {
-        // TODO Add handling for Exception
-        final HttpStatusCode status = getHttpStatusCodeFromException(e);
-        return createProblemDetail(e, status);
-
-    }
+    private final AuditionLogger auditionLogger;
 
     @ExceptionHandler(SystemException.class)
     ProblemDetail handleSystemException(final SystemException e) {
-        // TODO `Add Handling for SystemException
-        final HttpStatusCode status = getHttpStatusCodeFromSystemException(e);
-        return createProblemDetail(e, status);
 
+        final HttpStatusCode status = resolveStatus(e);
+        final String title = Optional.ofNullable(e.getTitle()).orElse(DEFAULT_TITLE);
+        // 4xx messages are meant for the caller; 5xx details stay in the log.
+        final String detail = status.is5xxServerError() ? DEFAULT_MESSAGE : messageOf(e);
+
+        return createProblemDetail(status, title, detail, e);
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    ProblemDetail handleConstraintViolation(final ConstraintViolationException e) {
 
-    private ProblemDetail createProblemDetail(final Exception exception,
-        final HttpStatusCode statusCode) {
-        final ProblemDetail problemDetail = ProblemDetail.forStatus(statusCode);
-        problemDetail.setDetail(getMessageFromException(exception));
-        if (exception instanceof SystemException) {
-            problemDetail.setTitle(((SystemException) exception).getTitle());
+        return createProblemDetail(BAD_REQUEST, VALIDATION_TITLE, describe(e), e);
+    }
+
+    @ExceptionHandler(Exception.class)
+    ProblemDetail handleMainException(final Exception e) {
+
+        return createProblemDetail(INTERNAL_SERVER_ERROR, DEFAULT_TITLE, DEFAULT_MESSAGE, e);
+    }
+
+    @SuppressWarnings("PMD.GuardLogStatement")
+    private ProblemDetail createProblemDetail(final HttpStatusCode status, final String title, final String detail,
+        final Exception exception) {
+
+        final ProblemDetail problemDetail = ProblemDetail.forStatus(status);
+        problemDetail.setTitle(title);
+        problemDetail.setDetail(detail);
+        if (status.is5xxServerError()) {
+            auditionLogger.logStandardProblemDetail(LOG, problemDetail, exception);
         } else {
-            problemDetail.setTitle(DEFAULT_TITLE);
+            auditionLogger.warn(LOG, "Request rejected: " + detail);
         }
         return problemDetail;
     }
 
-    private String getMessageFromException(final Exception exception) {
-        if (StringUtils.isNotBlank(exception.getMessage())) {
-            return exception.getMessage();
-        }
-        return DEFAULT_MESSAGE;
-    }
-
-    private HttpStatusCode getHttpStatusCodeFromSystemException(final SystemException exception) {
+    @SuppressWarnings("PMD.GuardLogStatement")
+    private HttpStatusCode resolveStatus(final SystemException e) {
         try {
-            return HttpStatusCode.valueOf(exception.getStatusCode());
+            return HttpStatusCode.valueOf(e.getStatusCode());
         } catch (final IllegalArgumentException iae) {
-            logger.info(LOG, ERROR_MESSAGE + exception.getStatusCode());
+            auditionLogger.warn(LOG,
+                "Status code could not be mapped to a valid HttpStatus Code - " + e.getStatusCode());
             return INTERNAL_SERVER_ERROR;
         }
     }
 
-    private HttpStatusCode getHttpStatusCodeFromException(final Exception exception) {
-        if (exception instanceof HttpClientErrorException) {
-            return ((HttpClientErrorException) exception).getStatusCode();
-        } else if (exception instanceof HttpRequestMethodNotSupportedException) {
-            return METHOD_NOT_ALLOWED;
-        }
-        return INTERNAL_SERVER_ERROR;
+    private static String messageOf(final Exception e) {
+        final String message = e.getMessage();
+        return message == null || message.isBlank() ? DEFAULT_MESSAGE : message;
+    }
+
+    /**
+     * Uses only the parameter name (not the "method.parameter" path) so internals aren't exposed.
+     */
+    private static String describe(final ConstraintViolationException e) {
+        return e.getConstraintViolations().stream()
+            .map(violation -> {
+                final String path = violation.getPropertyPath().toString();
+                return path.substring(path.lastIndexOf('.') + 1) + " " + violation.getMessage();
+            })
+            .sorted()
+            .collect(Collectors.joining("; "));
     }
 }
 

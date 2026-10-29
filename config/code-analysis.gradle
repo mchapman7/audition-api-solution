@@ -23,7 +23,13 @@ pmd {
     rulesMinimumPriority = 5
 
     ignoreFailures = false
+    ruleSets = [] // use only the project's rule files; Gradle's default errorprone set would bypass their exclusions
     ruleSetFiles = files("$rootProject.projectDir/config/pmd/ruleset.xml")
+}
+
+// Test code uses its own ruleset: the production rules minus the ones that do not suit tests.
+pmdTest {
+    ruleSetFiles = files("$rootProject.projectDir/config/pmd/ruleset-test.xml")
 }
 
 test {

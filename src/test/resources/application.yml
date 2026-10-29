@@ -1,6 +1,4 @@
 spring:
-  config:
-    import: "optional:configserver:"
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -10,3 +8,8 @@ application:
     write-timeout: 5000
     connect-timeout: 5000
     response-timeout: 5000
+audition:
+  client:
+    base-url: https://jsonplaceholder.typicode.com
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000

@@ -1,20 +1,20 @@
 spring:
   application:
     name: audition-api
-  config:
-    import: "optional:configserver:"
-  main:
-    allow-bean-definition-overriding: true
+  # removed allow-bean-definition-overriding: true hides duplicate-bean mistakes
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
   mvc:
     throw-exception-if-no-handler-found: true
-  sleuth:
-    sampler:
-      probability: 1.0
+# spring.sleuth.* is dead config. Sleuth was removed in Boot 3, and management.tracing.sampling already covers it
 server:
   max-http-request-header-size: 16KB
+audition:
+  client:
+    base-url: https://jsonplaceholder.typicode.com
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
 management:
   tracing:
     sampling:
@@ -22,7 +22,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: '*' #TODO enable only info and health for security purposes. Consider that we may want to still access other actuator endpoints securely.
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
 logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

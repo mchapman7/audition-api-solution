@@ -6,9 +6,8 @@ plugins {
     id 'jacoco'
     id "com.github.spotbugs" version "5.0.14"
     id "io.freefair.lombok" version "8.0.1"
-    // TODO Enable checkstyle and PMD. Fix all the relevant issues.
-    //id "checkstyle"
-    //id "pmd"
+    id "checkstyle"
+    id "pmd"
 }
 
 group = 'com.audition'
@@ -17,8 +16,7 @@ sourceCompatibility = '17'
 targetCompatibility = '17'
 
 
-// TODO allow for code-analysis.gradle to be applied for code analysis.
-// apply from: 'config/code-analysis.gradle'
+apply from: 'config/code-analysis.gradle'
 
 configurations {
     compileOnly {
@@ -31,45 +29,21 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', "2022.0.1")
-    set('logbackVersion', "1.4.5")
-    set('slf4jVersion', "2.0.5")
     set('springdocVersion', "2.0.2")
 }
 
 dependencies {
 
-    // TODO Clean up unused dependencies. Add comments on consideration on any improvements you made.
     implementation "org.springframework.boot:spring-boot-starter-actuator"
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "org.springframework.cloud:spring-cloud-starter-config"
-    implementation "org.springframework.boot:spring-boot-starter-webflux"
-    implementation "org.springframework.boot:spring-boot-starter-aop"
     implementation "io.micrometer:micrometer-tracing-bridge-brave"
     implementation "io.micrometer:micrometer-tracing"
-    implementation "io.micrometer:micrometer-registry-prometheus"
-    implementation "io.micrometer:context-propagation"
-    implementation "org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j"
-    implementation "org.springframework.cloud:spring-cloud-starter-config"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools"
-    runtimeOnly "io.micrometer:micrometer-registry-prometheus"
-
-
-    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-    implementation "ch.qos.logback:logback-core:${logbackVersion}"
-    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"
-    testImplementation "io.projectreactor:reactor-test"
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
 }
 
 
@@ -84,3 +58,27 @@ tasks.matching { it.name != 'prepareGitHooks' }.all { Task task -> task.dependsO
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// Classes without logic are excluded from coverage: constants and the Spring Boot entry point.
+// Lombok-generated code is excluded via lombok.config (lombok.addLombokGeneratedAnnotation).
+def coverageExcludes = ['com/audition/constant/**', 'com/audition/AuditionApplication*']
+
+jacocoTestReport {
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: coverageExcludes)
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn test
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: coverageExcludes)
+        }))
+    }
+}
+
+// The 80% minimum (defined in config/code-analysis.gradle) now fails the build instead of only being reported.
+check.dependsOn jacocoTestCoverageVerification
